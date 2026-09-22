@@ -148,14 +148,14 @@ Two deliberate choices I made:
 ### Schema
 
 ```sql
-CREATE TABLE rel\_type (
+CREATE TABLE rel_type (
   name          text PRIMARY KEY,
   inverse       text,                              -- name of the inverse direction
   symmetric     boolean NOT NULL DEFAULT false,
   transitive    boolean NOT NULL DEFAULT false,
-  deprecated\_by text REFERENCES rel\_type(name),    -- old name -> new name
-  from\_types    text\[],                            -- valid source types (NULL = any)
-  to\_types      text\[],                            -- valid target types
+  deprecated_by text REFERENCES rel_type(name),    -- old name -> new name
+  from_types    text[],                            -- valid source types (NULL = any)
+  to_types      text[],                            -- valid target types
   description   text
 );
 
@@ -165,28 +165,28 @@ CREATE TABLE node (
   title      text NOT NULL,
   body       text,
   props      jsonb NOT NULL DEFAULT '{}',
-  created\_at timestamptz NOT NULL DEFAULT now(),
-  updated\_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE edge (
   id         bigserial PRIMARY KEY,
-  from\_id    text NOT NULL REFERENCES node(id),
-  rel\_type   text NOT NULL REFERENCES rel\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_type(name),
-  to\_id      text NOT NULL REFERENCES node(id),
+  from_id    text NOT NULL REFERENCES node(id),
+  rel_type   text NOT NULL REFERENCES rel\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_type(name),
+  to_id      text NOT NULL REFERENCES node(id),
   props      jsonb NOT NULL DEFAULT '{}',          -- confidence, by, date ...
-  created\_by text,
-  created\_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (from\_id, rel\_type, to\_id)
+  created_by text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (from_id, rel_type, to_id)
 );
 
-CREATE INDEX ON edge (from\_id, rel\_type);
-CREATE INDEX ON edge (to\_id, rel\_type);
+CREATE INDEX ON edge (from_id, rel_type);
+CREATE INDEX ON edge (to_id, rel_type);
 
 -- View that maps old relationship names to new ones; queries use this
-CREATE VIEW edge\_v AS
-SELECT e.id, e.from\_id, COALESCE(r.deprecated\_by, r.name) AS rel, e.to\_id, e.props
-FROM edge e JOIN rel\_type r ON r.name = e.rel\_type;
+CREATE VIEW edge_v AS
+SELECT e.id, e.from_id, COALESCE(r.deprecated_by, r.name) AS rel, e.to_id, e.props
+FROM edge e JOIN rel_type r ON r.name = e.rel_type;
 ```
 
 ### `rel\_type` contents
@@ -245,7 +245,7 @@ FROM edge e JOIN rel\_type r ON r.name = e.rel\_type;
 ```sql
 SELECT id, title FROM node n
 WHERE type = 'decision'
-  AND NOT EXISTS (SELECT 1 FROM edge\_v WHERE rel = 'supersedes' AND to\_id = n.id);
+  AND NOT EXISTS (SELECT 1 FROM edge_v WHERE rel = 'supersedes' AND to_id = n.id);
 ```
 
 Result: **d04**. It's excluded from being superseded because `d08` is pointed to by a `supersedes` edge.
@@ -254,9 +254,9 @@ Result: **d04**. It's excluded from being superseded because `d08` is pointed to
 
 ```sql
 WITH RECURSIVE origins AS (
-  SELECT to\_id AS id FROM edge\_v WHERE from\_id = 'd09' AND rel = 'source'
+  SELECT to_id AS id FROM edge_v WHERE from_id = 'd09' AND rel = 'source'
   UNION
-  SELECT e.to\_id FROM edge\_v e JOIN origins o ON e.from\_id = o.id
+  SELECT e.to_id FROM edge_v e JOIN origins o ON e.from_id = o.id
   WHERE e.rel = 'source'
 )
 SELECT n.id, n.title FROM origins o JOIN node n ON n.id = o.id;
@@ -268,9 +268,9 @@ Result: **d04, d05, d03, d02, d01**. The `d03 → d01` link is stored under the 
 
 ```sql
 WITH RECURSIVE affected AS (
-  SELECT from\_id AS id FROM edge\_v WHERE to\_id = 'd01' AND rel = 'source'
+  SELECT from_id AS id FROM edge_v WHERE to_id = 'd01' AND rel = 'source'
   UNION
-  SELECT e.from\_id FROM edge\_v e JOIN affected a ON e.to\_id = a.id
+  SELECT e.from_id FROM edge_v e JOIN affected a ON e.to_id = a.id
   WHERE e.rel = 'source'
 )
 SELECT n.id, n.type, n.title FROM affected a JOIN node n ON n.id = a.id;
@@ -282,10 +282,10 @@ Result: **d03, d04, d09**. If the message is wrong, the AI summary needs to be r
 
 ```sql
 WITH RECURSIVE sequence AS (
-  SELECT to\_id AS id, 1 AS step FROM edge\_v
-  WHERE from\_id = 'd05' AND rel = 'progress-next'
+  SELECT to_id AS id, 1 AS step FROM edge_v
+  WHERE from_id = 'd05' AND rel = 'progress-next'
   UNION ALL
-  SELECT e.to\_id, s.step + 1 FROM edge\_v e JOIN sequence s ON e.from\_id = s.id
+  SELECT e.to_id, s.step + 1 FROM edge_v e JOIN sequence s ON e.from_id = s.id
   WHERE e.rel = 'progress-next' AND s.step < 50   -- cycle safety
 )
 SELECT s.step, n.title, n.props->>'status' AS status
@@ -299,8 +299,8 @@ Result: 1. iOS regression testing (in-progress), 2. Submit to the App Store (tod
 ```sql
 SELECT s.id AS summary, o.id AS dispute, o.title, c.props
 FROM node s
-JOIN edge\_v c ON c.rel = 'contradicts' AND s.id IN (c.from\_id, c.to\_id)
-JOIN node o ON o.id = CASE WHEN c.from\_id = s.id THEN c.to\_id ELSE c.from\_id END
+JOIN edge_v c ON c.rel = 'contradicts' AND s.id IN (c.from_id, c.to_id)
+JOIN node o ON o.id = CASE WHEN c.from_id = s.id THEN c.to_id ELSE c.from_id END
 WHERE s.type = 'ai-summary';
 ```
 
@@ -353,8 +353,8 @@ Turtle can be generated with an exporter if it's ever needed.
 
 ### Validation rules (on the software side)
 
-* A key not present in `rel\_type` is treated as a property.
-* A relationship's endpoints must match `from\_types` / `to\_types` (e.g., `resolves` only goes task → blocker).
+* A key not present in `rel_type` is treated as a property.
+* A relationship's endpoints must match `from_types` / `to_types` (e.g., `resolves` only goes task → blocker).
 * The target `id` must exist (no dangling links).
 * No cycles allowed in `progress-next` and `supersedes` chains.
 * A relationship written in the reverse direction triggers a warning.
@@ -371,7 +371,7 @@ I left these out deliberately; they should be addressed in the next iterations.
 2. **Ordering:** if the `progress-next` chain is meant to represent a list, how should branching (two next steps from one task) and out-of-order sequences be handled? A separate "ordered list" structure may be needed.
 3. **Versioning:** when a document's content changes, what happens to references made to the old version? Is `supersedes` enough, or is a separate version table needed?
 4. **Mapping notation to data:** is a single file multiple nodes, or one node per file? How will merge conflicts be resolved in a tool like Git?
-5. **`rel\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_type` governance:** who adds a new relationship type, who approves it? How does the migration process for a name change work?
+5. **`rel_type` governance:** who adds a new relationship type, who approves it? How does the migration process for a name change work?
 6. **Meaning of `transitive`:** does the field only store information, or does the query engine act on it? In this first version I wrote the recursive queries by hand.
 7. **Access control and multiple teams:** is different teams' data separate or shared? Is edge-level access control needed?
 8. **Traceability of AI output:** which model produced what, and when, from what input? For now there's `generated-by` and `confidence`; whether that's enough is unclear.
