@@ -50,12 +50,12 @@ Example questions the graph should be able to answer:
 |Block|A `- Title` line followed by indented lines beneath it|
 |`id::`|Required, unique, immutable (in practice a ULID; shown as `d01` in the example for readability)|
 |`type::`|Required|
-|`key:: value`|If the key exists in the `rel\_type` table it's a **relationship**, otherwise it's a **property**|
+|`key:: value`|If the key exists in the `rel_type` table it's a **relationship**, otherwise it's a **property**|
 |Multiple values|Comma-separated: `source:: d04, d02`|
 |Edge metadata|`{key: value}` after the target|
 |Inverse relation|Never written, always auto-derived (`source-of`)|
 
-To add a new relationship type, the notation itself doesn't change — you just add a row to the `rel\_type` table.
+To add a new relationship type, the notation itself doesn't change — you just add a row to the `rel_type` table.
 
 ### Example document
 
