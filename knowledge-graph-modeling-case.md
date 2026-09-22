@@ -189,7 +189,7 @@ SELECT e.id, e.from_id, COALESCE(r.deprecated_by, r.name) AS rel, e.to_id, e.pro
 FROM edge e JOIN rel_type r ON r.name = e.rel_type;
 ```
 
-### `rel\_type` contents
+### `rel_type` contents
 
 |name|inverse|symmetric|transitive|deprecated\_by|valid endpoints|
 |-|-|-|-|-|-|
@@ -220,7 +220,7 @@ FROM edge e JOIN rel_type r ON r.name = e.rel_type;
 
 ### `edge` contents (each relationship in the notation becomes one row)
 
-|from|rel\_type|to|props|
+|from|rel_type|to|props|
 |-|-|-|-|
 |d03|derived-from|d01||
 |d03|source|d02||
@@ -347,7 +347,7 @@ Turtle can be generated with an exporter if it's ever needed.
 **Other decisions**
 
 1. **Derivable information is not stored:** inverse relationships, "which decision is old," and "is the blocker resolved" are all inferred from edges. This prevents inconsistency.
-2. **Relationship types are data:** the `rel\_type` table holds the inverse direction, symmetry, transitivity, old name, and valid endpoints. Renaming doesn't break old records, thanks to `deprecated\_by`.
+2. **Relationship types are data:** the `rel_type` table holds the inverse direction, symmetry, transitivity, old name, and valid endpoints. Renaming doesn't break old records, thanks to `deprecated_by`.
 3. **Edges are first-class entities:** metadata can be attached to a relationship.
 4. **Stable identity:** the ID stays fixed even if the title or location changes.
 
