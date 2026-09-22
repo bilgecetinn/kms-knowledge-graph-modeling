@@ -1,0 +1,72 @@
+- Project: Mobile v2 launch
+  id:: d00
+  type:: project
+  owner:: ayse
+
+- Slack: Payment SDK crashes on iOS
+  id:: d01
+  type:: message
+  author:: mehmet
+  date:: 2026-09-14
+
+- Weekly sync meeting
+  id:: d02
+  type:: meeting
+  date:: 2026-09-15
+
+- Blocker: Payment crash on iOS
+  id:: d03
+  type:: blocker
+  derived-from:: d01
+  source:: d02
+
+- Decision: Stay on Payment SDK v3
+  id:: d08
+  type:: decision
+  date:: 2026-09-01
+
+- Decision: Upgrade to SDK v4
+  id:: d04
+  type:: decision
+  date:: 2026-09-15
+  source:: d03, d02
+  supersedes:: d08
+  part-of:: d00
+
+- Task: SDK v4 integration
+  id:: d05
+  type:: task
+  status:: done
+  owner:: mehmet
+  part-of:: d00
+  implements:: d04
+  resolves:: d03
+  progress-next:: d06
+
+- Task: iOS regression testing
+  id:: d06
+  type:: task
+  status:: in-progress
+  owner:: ayse
+  part-of:: d00
+  progress-next:: d07
+
+- Task: Submit to the App Store
+  id:: d07
+  type:: task
+  status:: todo
+  part-of:: d00
+
+- MrBrief: Weekly status summary
+  id:: d09
+  type:: ai-summary
+  date:: 2026-09-17
+  generated-by:: ai-assistant
+  source:: d04 {confidence: 0.9}, d05 {confidence: 0.8}
+
+- Slack: SDK v4 causes slowness on Android
+  id:: d10
+  type:: message
+  author:: ayse
+  date:: 2026-09-18
+  contradicts:: d09 {by: ayse, date: 2026-09-18}
